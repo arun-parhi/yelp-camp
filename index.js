@@ -2,6 +2,7 @@ const express = require('express');
 
 const path = require("path");
 const Campground = require("./models/campground");
+const ejsMate = require('ejs-mate');
 
 const mongoose = require("mongoose");
 mongoose.set('strictQuery', false);
@@ -19,6 +20,7 @@ const app = express();
 
 app.use(morgan('common'));
 
+app.engine('ejs', ejsMate);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
