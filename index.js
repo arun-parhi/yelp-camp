@@ -11,8 +11,11 @@ mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useUnifiedTopology: true,
 });
 
+const morgan = require('morgan');
+
 const app = express();
 
+app.use(morgan('common'));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
