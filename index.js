@@ -93,6 +93,10 @@ app.get('/secret', verifyPassword, (req, res) => {
     res.send('My secret is : I eat less, walk more.');
 });
 
+app.use((req, res) => {
+    res.status(404).render('error/404');
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log("Serving on port 3000");
