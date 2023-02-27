@@ -2,10 +2,16 @@ const express = require('express');
 
 const path = require("path");
 const ejsMate = require('ejs-mate');
-const campgrounds = require('./routes/campgrounds')
+const session = require('express-session');
+const flash = require('connect-flash');
+const campgroundRoutes = require('./routes/campgrounds');
+const userRoutes = require('./routes/users');
 
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
 
 mongoose.set('strictQuery', false);
 
@@ -42,7 +48,42 @@ const verifyPassword = (req, res, next) => {
     throw new AppError('Sorry you need a password !!', 401);
 }
 
-app.use('/campgrounds', campgrounds);
+const sessionConfig = {
+    secret: 'thisshouldbeabettersecret!',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        httpOnly: true,
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    }
+}
+
+app.use(session(sessionConfig))
+app.use(flash());
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+app.use((req, res, next) => {
+    console.log(req.session);
+    res.locals.currentUser = req.user;
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+})
+
+app.use((req, res, next) => { 
+    next();
+})
+
+app.use('/', userRoutes);
+app.use('/campgrounds', campgroundRoutes);
+
 
 app.get('/', (req, res) => {
     res.render("index");

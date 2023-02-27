@@ -4,13 +4,14 @@ const router = express.Router();
 const Campground = require("../models/campground");
 const Joi = require('joi');
 const AppError = require('../utils/AppError');
+const { isLoggedIn } = require('../middleware');
 
 router.get('/', wrapAsync(async (req, res, next) => {
     const campgrounds = await Campground.find();
     res.render('campgrounds/index', { campgrounds });
 }));
 
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
     res.render('campgrounds/new');
 });
 
@@ -34,7 +35,7 @@ const validateCampground = (req, res, next) => {
     }  
 }
 
-router.post('/', validateCampground, wrapAsync(async (req, res, next) => {
+router.post('/', isLoggedIn, validateCampground, wrapAsync(async (req, res, next) => {
     // if (!req.body.campground) throw new AppError('Invalid campground data', 404);
     
     const campground = new Campground(req.body.campground);
@@ -48,7 +49,7 @@ function wrapAsync(fn) {
     }
 }
 
-router.get('/:id', wrapAsync(async (req, res, next) => {
+router.get('/:id', isLoggedIn, wrapAsync(async (req, res, next) => {
     const campground = await Campground.findById(req.params.id);
     if (!campground) {
         throw new AppError('Campground not found', 404);
@@ -64,7 +65,7 @@ router.get('/:id/edit', wrapAsync(async (req, res, next) => {
     res.render('campgrounds/edit', { campground });
 }));
 
-router.put('/:id', validateCampground, wrapAsync(async (req, res, next) => {
+router.put('/:id', isLoggedIn, validateCampground, wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const campground = await Campground.findByIdAndUpdate(id, { ...req.body.campground });
     if (!campground) {
@@ -73,7 +74,7 @@ router.put('/:id', validateCampground, wrapAsync(async (req, res, next) => {
     res.redirect(`/campgrounds/${id}`);
 }));
 
-router.delete('/:id', wrapAsync(async (req, res, next) => {
+router.delete('/:id', isLoggedIn, wrapAsync(async (req, res, next) => {
     const { id } = req.params; 
     await Campground.findByIdAndDelete(id);
     res.redirect('/campgrounds');
